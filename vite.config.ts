@@ -7,6 +7,10 @@ export default defineConfig({
   server: {
     https: true
   },
+  build: {
+    outDir: "docs",
+  },
+  base: "yolked",
   plugins: [reactRefresh(), mkcert({
     hosts: ["localhost", "www.localhost.com", "localhost.com"]
   })]

@@ -5,7 +5,8 @@ import GApi from "./gapi"
 
 GApi.init();
 
-window.GAPI = GApi
+// this is for dev
+(window as any).GAPI = GApi
 
 ReactDOM.render(
   <React.StrictMode>
