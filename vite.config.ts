@@ -10,7 +10,7 @@ export default defineConfig({
   build: {
     outDir: "docs",
   },
-  base: "yolked",
+  base: "/yolked/",
   plugins: [reactRefresh(), mkcert({
     hosts: ["localhost", "www.localhost.com", "localhost.com"]
   })]

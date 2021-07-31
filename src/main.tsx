@@ -2,11 +2,13 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import App from './App'
 import GApi from "./gapi"
-
-GApi.init();
+import Db from "./db"
 
 // this is for dev
-(window as any).GAPI = GApi
+(window as any).GAPI = GApi;
+
+// this is for dev
+(window as any).DB = Db
 
 ReactDOM.render(
   <React.StrictMode>
