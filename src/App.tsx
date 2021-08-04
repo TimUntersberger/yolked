@@ -4,8 +4,9 @@ import {
   Switch,
   Route
 } from "react-router-dom";
-import { BiDumbbell, BiHistory, BiSpreadsheet, BiRun } from "react-icons/bi"
-import * as UI from "./ui"
+import { BiDumbbell, BiHistory, BiSpreadsheet, BiRun, BiPlus, BiUser } from "react-icons/bi"
+import { IoFastFoodOutline } from "react-icons/io5"
+import { Flex, Grid, Button } from "./ui"
 import GApi from "./gapi"
 import Db from "./db"
 
@@ -73,28 +74,64 @@ function App() {
     return <p>Loading... </p>
   }
 
+  const bottomBarItems = [
+    {
+      name: "PROFILE",
+      icon: BiUser,
+      handler: () => {
+        console.log("profile")
+      }
+    },
+    {
+      name: "EXERCISES",
+      icon: BiDumbbell,
+      handler: () => {
+        console.log("exercises")
+      }
+    },
+    {
+      name: "WORKOUT",
+      icon: BiPlus,
+      handler: () => {
+        console.log("workout")
+      }
+    },
+    {
+      name: "HISTORY",
+      icon: BiHistory,
+      handler: () => {
+        console.log("history")
+      }
+    },
+    {
+      name: "FOOD",
+      icon: IoFastFoodOutline,
+      handler: () => {
+        console.log("food")
+      }
+    },
+  ]
+
   const authBtn = signedIn
-    ? <UI.Button onClick={() => GApi.sign_out()}>sign out</UI.Button>
-    : <UI.Button onClick={() => GApi.sign_in()}>sign in</UI.Button>
+    ? <Button onClick={() => GApi.sign_out()}>sign out</Button>
+    : <Button onClick={() => GApi.sign_in()}>sign in</Button>
 
   return (
     <Router>
-      <UI.AppContainer>
-        <UI.Topbar>
-          <UI.TopbarTitle>Yolked</UI.TopbarTitle>
-          <UI.Flex style={{ marginLeft: "auto" }}>
-            <div style={{ marginRight: "10px" }}>
-              {signedIn && profile && <UI.Flex centerVertical>
-                <UI.TopbarProfileImage height={28} src={profile.image} style={{ marginRight: "5px" }}></UI.TopbarProfileImage>
+      <Flex column className="h-full">
+        <Flex centerVertical className="p-2 bg-gray-100 h-12">
+          <span className="text-md">Yolked</span>
+          <Flex centerVertical className="ml-auto">
+            <div className="mr-2">
+              {signedIn && profile && <Flex centerVertical>
+                <img src={profile.image} className="mr-1 rounded-full h-8"></img>
                 <span>{profile.name}</span>
-              </UI.Flex>}
+              </Flex>}
             </div>
-            <div>
-              {authBtn}
-            </div>
-          </UI.Flex>
-        </UI.Topbar>
-        <UI.Flex style={{ padding: "5px" }}>
+            {authBtn}
+          </Flex>
+        </Flex>
+        <Flex className="p-1">
           <Switch>
             <Route exact path="/programs">
               <TableView title="Programs" tableName="programs"></TableView>
@@ -106,32 +143,18 @@ function App() {
               <TableView title="Workout History" tableName="workouts"></TableView>
             </Route>
           </Switch>
-        </UI.Flex>
-        <UI.Bottombar>
-          <UI.RouterLink to="programs">
-            <UI.BottombarIcon>
-              <BiSpreadsheet></BiSpreadsheet>
-              PROGRAMS
-            </UI.BottombarIcon>
-          </UI.RouterLink>
-          <UI.RouterLink to="exercises">
-            <UI.BottombarIcon>
-              <BiRun></BiRun>
-              EXERCISES
-            </UI.BottombarIcon>
-          </UI.RouterLink>
-          <UI.RouterLink to="history">
-            <UI.BottombarIcon>
-              <BiHistory></BiHistory>
-              HISTORY
-            </UI.BottombarIcon>
-          </UI.RouterLink>
-          <UI.BottombarIcon>
-            <BiDumbbell></BiDumbbell>
-            WORKOUT
-          </UI.BottombarIcon>
-        </UI.Bottombar>
-      </UI.AppContainer>
+        </Flex>
+        <Flex centerHorizontal className="bg-gray-100 mt-auto">
+          {
+            bottomBarItems.map(i => {
+              return <Grid centerItemsHorizontal columns="repeat(auto-fill, minmax(100px, auto))" className="text-t p-2 cursor-pointer hover:bg-gray-200" onClick={i.handler}>
+                <i.icon className="text-2xl"></i.icon>
+                {i.name}
+              </Grid>
+            })
+          }
+        </Flex>
+      </Flex>
     </Router>
   )
 }
