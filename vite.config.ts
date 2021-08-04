@@ -17,6 +17,16 @@ export default defineConfig({
     pwa({
       manifest: {
         name: "Yolked",
+        icons: [
+          {
+            "src": "assets/logo-48x48.ico",
+            "sizes": "48x48"
+          },
+          {
+            "src": "assets/logo-32x32.ico",
+            "sizes": "32x32"
+          }
+        ],
         short_name: "Yolked",
         start_url: "/yolked",
         display: "standalone"
