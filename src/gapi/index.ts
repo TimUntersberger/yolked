@@ -54,7 +54,7 @@ class GApi {
 
   public sign_in() {
     if (!this.signed_in) {
-      gapi.auth2.getAuthInstance().signIn()
+      return gapi.auth2.getAuthInstance().signIn()
     }
   }
 
