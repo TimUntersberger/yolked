@@ -15,7 +15,8 @@
     "react-dom": "^17.0.0",
     "react-icons": "^4.2.0",
     "react-router-dom": "^5.2.0",
-    "vite-plugin-mkcert": "^1.4.1"
+    "vite-plugin-mkcert": "^1.4.1",
+    "vite-plugin-pwa": "^0.9.3"
   },
   "devDependencies": {
     "@types/react": "^17.0.0",
