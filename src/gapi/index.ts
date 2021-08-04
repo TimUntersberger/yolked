@@ -17,25 +17,35 @@ class GApi {
   public sheets = new GSheetsClient()
   private event_handler: GApiEventHandler = () => {}
 
-  public init() {
+  public load() {
     return new Promise<void>((resolve) => {
       gapi.load("client:auth2", () => {
-        gapi.auth2.init({
-          client_id: CLIENT_ID,
-          scope: SCOPES,
-          ux_mode: "popup",
-        }).then(auth => {
-          this.initialized = true
-          this.signed_in = auth.isSignedIn.get()
-          auth.isSignedIn.listen(value => {
-            this.signed_in = value
-            this.event_handler(value ? "signIn" : "signOut")
-          })
-          this.event_handler("initialized")
-          resolve()
-        })
+        resolve()
       })
     })
+  }
+
+  public init() {
+    return new Promise<void>((resolve) => {
+      gapi.auth2.init({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        ux_mode: "popup",
+      }).then(auth => {
+        this.initialized = true
+        this.signed_in = auth.isSignedIn.get()
+        auth.isSignedIn.listen(value => {
+          this.signed_in = value
+          this.event_handler(value ? "signIn" : "signOut")
+        })
+        this.event_handler("initialized")
+        resolve()
+      })
+    })
+  }
+
+  public get_user() {
+    return gapi.auth2.getAuthInstance().currentUser.get()
   }
 
   public set_event_handler(f: GApiEventHandler) {

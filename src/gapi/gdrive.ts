@@ -1,5 +1,3 @@
-import GApi from "./"
-
 export type GDriveItemKind = "drive#folder" | "drive#file"
 export type GDriveItem<TKind extends GDriveItemKind> = {
   kind: TKind,
@@ -22,34 +20,51 @@ export type GDriveCreateFolderOptions = {
 export type GDriveItemList = GDriveItem<any>[]
 
 export default class GDriveClient {
-  public async create_file(opts: GDriveCreateFileOptions): Promise<GDriveItem<"drive#file"> | null> {
-    if (GApi.signed_in) {
-      const res = await gapi.client.request({
-        path: "drive/v3/files",
-        method: "POST",
-        body: opts
-      })
+  public async create_file(opts: GDriveCreateFileOptions): Promise<GDriveItem<"drive#file">> {
+    const res = await gapi.client.request({
+      path: "drive/v3/files",
+      method: "POST",
+      body: opts
+    })
 
-      return JSON.parse(res.body)
-    }
-
-    return null
+    return JSON.parse(res.body)
   }
 
-  public async get_all(): Promise<GDriveItemList | null> {
-    if (GApi.signed_in) {
-      const res = await gapi.client.request({
-        path: "drive/v3/files",
-        method: "GET"
-      })
+  public async get_all_by_query(query: string): Promise<GDriveItemList> {
+    const res = await gapi.client.request({
+      path: "drive/v3/files",
+      method: "GET",
+      params: {
+        q: query
+      }
+    })
 
-      return JSON.parse(res.body).files
-    }
-
-    return null
+    return JSON.parse(res.body).files
   }
 
-  public async create_folder(opts: GDriveCreateFolderOptions): Promise<GDriveItem<"drive#folder"> | null> {
+  public async get_one_by_query(query: string): Promise<GDriveItem<any>> {
+    const res = await gapi.client.request({
+      path: "drive/v3/files",
+      method: "GET",
+      params: {
+        q: query,
+        pageSize: 1
+      }
+    })
+
+    return JSON.parse(res.body).files[0]
+  }
+
+  public async get_all(): Promise<GDriveItemList> {
+    const res = await gapi.client.request({
+      path: "drive/v3/files",
+      method: "GET"
+    })
+
+    return JSON.parse(res.body).files
+  }
+
+  public async create_folder(opts: GDriveCreateFolderOptions): Promise<GDriveItem<"drive#folder">> {
     return this.create_file({
       ...opts,
       mimeType: "application/vnd.google-apps.folder"
@@ -57,14 +72,9 @@ export default class GDriveClient {
   }
 
   public async delete_item(id: string) {
-    if (GApi.signed_in) {
-      const res = await gapi.client.request({
-        path: "drive/v3/files",
-        method: "DELETE",
-        body: {
-          id
-        }
-      })
-    }
+    await gapi.client.request({
+      path: "drive/v3/files/" + id,
+      method: "DELETE"
+    })
   }
 }
