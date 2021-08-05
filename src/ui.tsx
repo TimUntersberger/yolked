@@ -30,8 +30,6 @@ export function Flex(props: any) {
     }
   }
 
-  console.log(style)
-
   return (
     <div
       className={props.className}

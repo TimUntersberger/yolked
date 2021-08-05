@@ -12,6 +12,7 @@ import Db from "./db";
 import LoadingScreen from "./LoadingScreen";
 import AppScreen from "./AppScreen";
 import { Menu } from "@headlessui/react";
+import ProgramEditor from "./ProgramEditor";
 
 function TableView(props: any) {
   const [data, setData] = useState<[any, any][]>([]);
@@ -252,6 +253,10 @@ function App() {
     });
   }, []);
 
+  if (true) {
+    return <ProgramEditor />
+  }
+
   if (!initialized) {
     return <AppScreen />
   }
@@ -277,7 +282,7 @@ function App() {
     <Router>
       <Flex column className="h-full">
         <TopBar profile={profile}/>
-        <Flex className="p-1 h-full overflow-scroll">
+        <Flex className="p-1 h-full overflow-y-scroll">
           <Switch>
             <Route exact path="/active">
               <ActiveWorkout />
