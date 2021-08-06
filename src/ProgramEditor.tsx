@@ -41,9 +41,7 @@ const AddNode = (props: NodeProps) => {
 const EffectNode = (props: NodeProps) => {
   const dependencies = props.data.inputs.map((input: any) => props.data[input.id])
   const inputs = props.data.inputs || []
-  useEffect(() => {
-    props.data.callback(dependencies)
-  }, dependencies)
+
   return (
     <div className="p-2 bg-blue-100">
       {inputs.map((input: any, idx: number) => (
@@ -72,28 +70,6 @@ function updateNodeData(n: FlowElement, key: string, value: any): FlowElement {
 
 const InputNode = (props: NodeProps) => {
   const [value, setValue] = useState(props.data.defaultValue || "");
-  const convert = props.data.convert || ((x: any) => x);
-
-  useEffect(() => {
-    const val = convert(value);
-    props.data.setElements((els: Elements) => {
-      const edges = els.filter((e) => (e as Edge).source == props.id) as Array<
-        Edge<any>
-      >;
-
-      const res = els.map((n) => {
-        for (const edge of edges) {
-          if (edge.target == n.id) {
-            return updateNodeData(n, edge.targetHandle!, val);
-          }
-        }
-
-        return n;
-      });
-
-      return res;
-    });
-  }, [value]);
 
   return (
     <div className="p-2 border flex flex-col bg-white">
@@ -105,17 +81,6 @@ const InputNode = (props: NodeProps) => {
       />
       <Handle
         type="source"
-        onConnect={(conn) => {
-          props.data.setElements((els: Elements) => {
-            return els.map((n) => {
-              if (n.id == conn.target) {
-                return updateNodeData(n, conn.targetHandle!, convert(value));
-              }
-
-              return n;
-            });
-          });
-        }}
         position={Position.Right}
       />
     </div>
@@ -165,6 +130,11 @@ export default function ProgramEditor() {
           ])
         }}>
           console.log
+        </div>
+        <div onClick={() => {
+          
+        }} className="ml-auto px-2 py-1 bg-gray-100 cursor-pointer">
+          execute
         </div>
       </Flex>
       <ReactFlow

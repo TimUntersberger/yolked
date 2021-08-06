@@ -2,13 +2,9 @@ import React from "react";
 import { useHistory } from "react-router-dom";
 
 export function Flex(props: any) {
-  let style: any = {
-    display: "flex",
-  };
+  let style: any = props.style || {}
 
-  if (props.inline) {
-    style.display = "inline-flex";
-  }
+  style.display = props.inline ? "inline-flex" : "flex"
 
   if (props.column) {
     style.flexDirection = "column";
