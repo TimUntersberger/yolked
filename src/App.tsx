@@ -5,7 +5,7 @@ import {
   Route,
   useHistory,
 } from "react-router-dom";
-import { BiHistory, BiPlus } from "react-icons/bi";
+import { BiHistory, BiPlus, BiDotsVerticalRounded } from "react-icons/bi";
 import { IoFastFoodOutline } from "react-icons/io5";
 import { Flex, Grid, Button } from "./ui";
 import { useConst, useForceUpdate } from "./hooks";
@@ -121,16 +121,118 @@ type ActiveExercise = {
   sets: Set[];
 };
 
-function ActiveWorkout() {
-  const startTime = useConst(() => Date.now());
-  const [currentTime, setCurrentTime] = useState(startTime);
+function ActiveSet(props: { number: number, set: Set, onRemoveRequest: () => void }) {
   const forceUpdate = useForceUpdate();
+  const menuItems = [
+    {
+      name: "Remove Set",
+      handler: props.onRemoveRequest
+    }
+  ];
+
+  return (
+    <Flex className="w-full mt-2">
+      <span className="bg-gray-100 w-6 text-center rounded-md mr-auto cursor-pointer">
+        {props.number}
+      </span>
+      <input
+        onChange={(e) => {
+          props.set.weight = e.target.value;
+          forceUpdate();
+        }}
+        value={props.set.weight}
+        className="bg-gray-100 w-8 text-center rounded-md"
+      />
+      <span className="mx-2">x</span>
+      <input
+        onChange={(e) => {
+          props.set.reps = e.target.value;
+          forceUpdate();
+        }}
+        value={props.set.reps}
+        className="bg-gray-100 w-8 text-center rounded-md"
+      />
+    </Flex>
+  )
+}
+
+function ActiveExercise(props: { exercise: ActiveExercise, onRemoveRequest: () => void }) {
+  const forceUpdate = useForceUpdate();
+  const menuItems = [
+    {
+      name: "Remove Exercise",
+      handler: props.onRemoveRequest
+    }
+  ];
+
+  return (
+    <Flex column className="w-full mt-4">
+      <Flex>
+        <span className="text-2xl">{props.exercise.name}</span>
+        <Menu>
+          <Menu.Button className="ml-auto">
+            <BiDotsVerticalRounded className="text-xl"></BiDotsVerticalRounded>
+          </Menu.Button>
+          <Menu.Items className="absolute border bg-white right-0 mr-1 mt-2 rounded-md">
+            {menuItems.map((i, idx) => {
+              return (
+                <Menu.Item
+                  onClick={i.handler}
+                  key={idx}
+                  as="p"
+                  className={`py-1 px-3 cursor-pointer hover:bg-gray-200`}>
+                  {i.name}
+                </Menu.Item>
+              );
+            })}
+          </Menu.Items>
+        </Menu>
+      </Flex>
+      <div className="w-full px-5">
+        {props.exercise.sets.map((s, idx) => (
+          <ActiveSet
+            key={idx}
+            number={idx + 1}
+            set={s}
+            onRemoveRequest={() => {
+              props.exercise.sets.splice(idx, 1);
+              forceUpdate()
+            }}
+          />
+        ))}
+        <Button
+          onClick={() => {
+            props.exercise.sets.push({
+              weight: "",
+              reps: "",
+            });
+            forceUpdate();
+          }}
+          borderless
+          padding=""
+          className="bg-gray-200 w-full mt-3 rounded-md"
+        >
+          Add set
+        </Button>
+      </div>
+    </Flex >
+  )
+}
+
+function ActiveWorkout(props: {
+  onFinish: (startTime: number, endTime: number, exercises: ActiveExercise[]) => void,
+  onCancel: () => void
+}) {
+  const startTime = useConst(() => Date.now());
+  const [done, setDone] = useState(false);
+  const [currentTime, setCurrentTime] = useState(startTime);
   const [exerciseModalOpen, setExerciseModalOpen] = useState(false);
   const [activeExercises, setActiveExercises] = useState<ActiveExercise[]>([]);
 
   const deltaTime = currentTime - startTime;
 
   useEffect(() => {
+    if (done) { return }
     const interval = setInterval(() => {
       setCurrentTime(Date.now());
     }, 1000);
@@ -138,7 +240,7 @@ function ActiveWorkout() {
     return () => {
       clearInterval(interval);
     };
-  }, []);
+  }, [done]);
 
   return (
     <Flex column centerHorizontal className="w-full h-full p-3">
@@ -150,54 +252,34 @@ function ActiveWorkout() {
         }}
       />
       <span className="text-lg">{msToTime(deltaTime)}</span>
-      {activeExercises.map((e, idx) => (
-        <Flex key={idx} column className="w-full mt-4">
-          <span className="text-2xl">{e.name}</span>
-          <div className="w-full px-5">
-            {e.sets.map((s, idx) => (
-              <Flex key={idx} className="w-full mt-2">
-                <span className="bg-gray-100 w-6 text-center rounded-md mr-auto cursor-pointer">
-                  {idx + 1}
-                </span>
-                <input
-                  onChange={(e) => {
-                    s.weight = e.target.value;
-                    forceUpdate();
-                  }}
-                  value={s.weight}
-                  className="bg-gray-100 w-8 text-center rounded-md"
-                />
-                <span className="mx-2">x</span>
-                <input
-                  onChange={(e) => {
-                    s.reps = e.target.value;
-                    forceUpdate();
-                  }}
-                  value={s.reps}
-                  className="bg-gray-100 w-8 text-center rounded-md"
-                />
-              </Flex>
-            ))}
-            <Button
-              onClick={() => {
-                e.sets.push({
-                  weight: "",
-                  reps: "",
-                });
-                forceUpdate();
-              }}
-              borderless
-              padding=""
-              className="bg-gray-100 w-full mt-3 rounded-md"
-            >
-              Add set
-            </Button>
-          </div>
-        </Flex>
-      ))}
-      <Button onClick={() => setExerciseModalOpen(true)} borderless className="bg-gray-100 w-full mt-5">
+      {activeExercises.map((e, idx) => <ActiveExercise
+        key={idx}
+        exercise={e}
+        onRemoveRequest={
+          () => {
+            setActiveExercises([
+              ...activeExercises.slice(0, idx),
+              ...activeExercises.slice(idx + 1)
+            ])
+          }
+        } />)}
+      <Button onClick={() => setExerciseModalOpen(true)} borderless className="bg-blue-200 w-full mt-5">
         Add exercise
       </Button>
+      <Flex className="w-full mt-2">
+        <Button onClick={() => {
+          setDone(true);
+          props.onCancel();
+        }} borderless className="bg-red-200 w-full">
+          Cancel workout
+        </Button>
+        <Button onClick={() => { 
+          setDone(true);
+          props.onFinish(startTime, currentTime, activeExercises);
+        }} borderless className="bg-green-200 ml-2 w-full">
+          Finish workout
+        </Button>
+      </Flex>
     </Flex>
   );
 }
@@ -229,7 +311,7 @@ function TopBar(props: any) {
     },
     {
       name: "Exercises",
-      handler: () => {},
+      handler: () => { },
     },
     {
       name: "Sign Out",
@@ -270,11 +352,10 @@ function TopBar(props: any) {
                       onClick={i.handler}
                       key={idx}
                       as="p"
-                      className={`py-1 px-3 ${
-                        i.handler
-                          ? "cursor-pointer hover:bg-gray-200"
-                          : "text-gray-500"
-                      }`}
+                      className={`py-1 px-3 ${i.handler
+                        ? "cursor-pointer hover:bg-gray-200"
+                        : "text-gray-500"
+                        }`}
                     >
                       {i.name}
                     </Menu.Item>
@@ -346,7 +427,9 @@ function App() {
   useEffect(() => {
     Db.init();
     GApi.load().then(async () => {
+      console.log("GAPI loaded")
       await GApi.init();
+      console.log("GAPI initialized")
       const auth = gapi.auth2.getAuthInstance();
       setProfile(user_to_profile(auth.currentUser.get()));
       auth.currentUser.listen((user) => {
@@ -402,7 +485,16 @@ function App() {
         <Flex className="p-1 h-full overflow-y-scroll">
           <Switch>
             <Route exact path="/active">
-              <ActiveWorkout />
+              <ActiveWorkout 
+                onFinish={(startTime, endTime, exercises) => {
+                  Db.idb.insert("workouts", null, {
+                    startTime,
+                    endTime,
+                    exercises
+                  })
+                }}
+                onCancel={() => {}}
+              />
             </Route>
             <Route exact path="/programs">
               <TableView title="Programs" tableName="programs"></TableView>
