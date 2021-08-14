@@ -30,6 +30,7 @@ export function Flex(props: any) {
     <div
       className={props.className}
       style={style}
+      onClick={props.onClick}
     >
       {props.children}
     </div>

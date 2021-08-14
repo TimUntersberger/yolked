@@ -79,7 +79,7 @@ export default class IndexedDatabase {
     })
   }
 
-  public async insert(storeName: string, key: any, value: any) {
+  public async insert(storeName: string, key: any, value: any): Promise<any> {
     return new Promise(async (resolve, reject) => {
       await this.transaction(storeName, s => {
         const req = s.add(value, key)
