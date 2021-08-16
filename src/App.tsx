@@ -197,7 +197,7 @@ function ExerciseDialog(props: {
                   },
                 ]);
                 setNewExerciseModalOpen(false);
-              });
+              }).catch(x => alert(JSON.stringify(x)));
             }}
             onCancel={() => {
               setNewExerciseModalOpen(false);
@@ -651,7 +651,7 @@ function App() {
   const history = useHistory();
 
   useEffect(() => {
-    Db.init();
+    Db.init().catch(x => alert(JSON.stringify(x)));
     GApi.load().then(async () => {
       console.log("GAPI loaded");
       await GApi.init();
