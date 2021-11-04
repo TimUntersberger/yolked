@@ -580,7 +580,7 @@ function TopBar(props: any) {
                       onClick={i.handler}
                       key={idx}
                       as="p"
-                      className={`py-1 px-3 ${i.handler
+                      className={`py-1 px-3 ${!!i.handler
                           ? "cursor-pointer hover:bg-gray-200"
                           : "text-gray-500"
                         }`}

@@ -38,14 +38,16 @@ export default class GdriveDb {
       const sheet_name = TABLE_PREFIX + tbl_name;
       const sheet = await GApi.sheets.get_by_name(sheet_name);
 
-      const data = (await sheet.get_all()) || []
-      const idb_data = (await idb.to_array(tbl_name)).map(x => x.map(JSON.stringify))
+      if (sheet) {
+        const data = (await sheet.get_all()) || []
+        const idb_data = (await idb.to_array(tbl_name)).map(x => x.map(x => JSON.stringify(x)))
 
-      await sheet.clear()
-      await sheet.update(idb_data)
+        await sheet.clear()
+        await sheet.update(idb_data)
+      }
     }
 
-    localStorage.setItem("lastSyncTime", Date.now())
+    localStorage.setItem("lastSyncTime", Date.now().toString())
   }
 
   private async create_tables() {
