@@ -24,6 +24,28 @@ export class GSheet {
     })
   }
 
+  public async clear() {
+    await gapi.client.request({
+      path: SHEETS_URL + this.id + "/values/Sheet1:clear",
+      method: "POST"
+    })
+  }
+
+  public async update(data: any[][]) {
+    await gapi.client.request({
+      path: SHEETS_URL + this.id + "/values/Sheet1",
+      method: "PUT",
+      body: {
+        range: "Sheet1",
+        majorDimension: "ROWS",
+        values: data
+      },
+      params: {
+        valueInputOption: "RAW"
+      }
+    })
+  }
+
   public async get_all(): Promise<any[][]> {
     return this.get_range("Sheet1")
   }

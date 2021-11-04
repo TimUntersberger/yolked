@@ -8,20 +8,19 @@ import {
 import { BiHistory, BiPlus, BiDotsVerticalRounded } from "react-icons/bi";
 import { IoFastFoodOutline } from "react-icons/io5";
 import { Flex, Grid, Button } from "./ui";
-import { useConst, useForceUpdate } from "./hooks";
+import { useConst, useForceUpdate, useGdriveDatabase, useIndexedDatabase } from "./hooks";
 import GApi from "./gapi";
-import Db from "./db";
 import LoadingScreen from "./LoadingScreen";
 import AppScreen from "./AppScreen";
 import { Dialog, Menu } from "@headlessui/react";
-import ProgramEditor from "./ProgramEditor";
 import fuzzysort from "fuzzysort";
 
 function TableView(props: any) {
   const [data, setData] = useState<[any, any][]>([]);
+  const idb = useIndexedDatabase();
 
   useEffect(() => {
-    Db.idb.to_array(props.tableName).then(setData);
+    idb.to_array(props.tableName).then(setData);
   }, [props.tableName]);
 
   return (
@@ -71,9 +70,10 @@ function Workout(props: { workout: Workout }) {
 
 function WorkoutHistory(props: any) {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const idb = useIndexedDatabase();
 
   useEffect(() => {
-    Db.idb
+    idb
       .to_array("workouts")
       .then((pairs) => pairs.map((pair) => ({ id: pair[0], ...pair[1] })))
       .then(setWorkouts);
@@ -159,9 +159,10 @@ function ExerciseDialog(props: {
   const [newExerciseModalOpen, setNewExerciseModalOpen] = useState(false);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [filteredExercises, setFilteredExercises] = useState<Exercise[]>([]);
+  const idb = useIndexedDatabase();
 
   useEffect(() => {
-    Db.idb
+    idb
       .to_array("exercises")
       .then((pairs) => pairs.map((pair) => ({ id: pair[0], name: pair[1] })))
       .then(setExercises);
@@ -188,7 +189,7 @@ function ExerciseDialog(props: {
           <NewExerciseDialog
             open={newExerciseModalOpen}
             onConfirm={(name) => {
-              Db.idb.insert("exercises", null, name).then((id) => {
+              idb.insert("exercises", null, name).then((id) => {
                 setExercises([
                   ...exercises,
                   {
@@ -373,7 +374,7 @@ function ActiveExercise(props: {
         <Button
           onClick={() => {
             const prev_set =
-              props.exercise.sets[props.exercise.sets.length - 1];
+              props.exercise.sets[props.exercise.sets.length - 1] || {};
             props.exercise.sets.push({
               weight: prev_set.weight || "",
               reps: prev_set.reps || "",
@@ -420,19 +421,15 @@ function ActiveWorkout(props: {
     }
   }, []);
 
-  useEffect(() => () => {
-    if (!done) {
-      localStorage.setItem(
-        localStorageId,
-        JSON.stringify({
-          startTime,
-          activeExercises,
-        })
-      );
-    } else {
-      localStorage.removeItem(localStorageId);
-    }
-  });
+  useEffect(() => {
+    localStorage.setItem(
+      localStorageId,
+      JSON.stringify({
+        startTime,
+        activeExercises,
+      })
+    );
+  }, [done, activeExercises]);
 
   useEffect(() => {
     if (done) {
@@ -485,6 +482,8 @@ function ActiveWorkout(props: {
         <Button
           onClick={() => {
             setDone(true);
+            localStorage.removeItem(localStorageId);
+            console.log("canceled")
             props.onCancel();
           }}
           borderless
@@ -528,13 +527,19 @@ function user_to_profile(user?: gapi.auth2.GoogleUser): Profile | null {
 }
 
 function TopBar(props: any) {
+  const gdb = useGdriveDatabase()
+  const idb = useIndexedDatabase()
+
   const profileMenuItems = [
     {
-      name: "Synchronizing...",
+      name: "Synchronize",
+      handler: () => {
+        gdb.sync(idb)
+      }
     },
     {
       name: "Exercises",
-      handler: () => {},
+      handler: () => { },
     },
     {
       name: "Sign Out",
@@ -575,11 +580,10 @@ function TopBar(props: any) {
                       onClick={i.handler}
                       key={idx}
                       as="p"
-                      className={`py-1 px-3 ${
-                        i.handler
+                      className={`py-1 px-3 ${i.handler
                           ? "cursor-pointer hover:bg-gray-200"
                           : "text-gray-500"
-                      }`}
+                        }`}
                     >
                       {i.name}
                     </Menu.Item>
@@ -648,11 +652,13 @@ function App() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [initialized, setInitialized] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
+  const gdriveDatabase = useGdriveDatabase();
+  const idb = useIndexedDatabase();
   const history = useHistory();
 
   useEffect(() => {
-    Db.init().catch(x => alert(JSON.stringify(x)));
     GApi.load().then(async () => {
+      await idb.open();
       console.log("GAPI loaded");
       await GApi.init();
       console.log("GAPI initialized");
@@ -662,6 +668,7 @@ function App() {
         console.log(user);
         setProfile(user_to_profile(user));
       });
+      await gdriveDatabase.init();
       setInitialized(true);
     });
 
@@ -712,7 +719,7 @@ function App() {
           <Route exact path="/active">
             <ActiveWorkout
               onFinish={(startTime, endTime, exercises) => {
-                Db.idb
+                idb
                   .insert("workouts", null, {
                     startTime,
                     endTime,

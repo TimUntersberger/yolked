@@ -124,11 +124,3 @@ export default class IndexedDatabase {
     }
   }
 }
-
-const w = window as any
-w.TEST = async function () {
-  const id = await w.DB.idb.insert("exercises", null, "test")
-  w.DB.idb.for_each("exercises", console.log)
-  await w.DB.idb.delete("exercises", id)
-  w.DB.idb.for_each("exercises", console.log)
-}

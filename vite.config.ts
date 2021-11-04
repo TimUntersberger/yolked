@@ -19,15 +19,15 @@ export default defineConfig({
         name: "Yolked",
         icons: [
           {
-            "src": "assets/logo-180x180.ico",
+            "src": "assets/yolked.png",
             "sizes": "180x180",
           },
           {
-            "src": "assets/logo-48x48.ico",
+            "src": "assets/yolked.png",
             "sizes": "48x48"
           },
           {
-            "src": "assets/logo-32x32.ico",
+            "src": "assets/yolked.png",
             "sizes": "32x32"
           }
         ],
