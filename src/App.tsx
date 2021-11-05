@@ -582,8 +582,8 @@ function TopBar(props: any) {
                       key={idx}
                       as="p"
                       className={`py-1 px-3 ${!!i.handler
-                          ? "cursor-pointer hover:bg-gray-200"
-                          : "text-gray-500"
+                        ? "cursor-pointer hover:bg-gray-200"
+                        : "text-gray-500"
                         }`}
                     >
                       {i.name}
@@ -659,9 +659,9 @@ function App() {
 
   useEffect(() => {
     GApi.load().then(async () => {
-      await idb.open().catch(alert);
+      await idb.open().catch(x => alert(JSON.stringify(x)));
       console.log("GAPI loaded");
-      await GApi.init().catch(alert);
+      await GApi.init().catch(x => alert(JSON.stringify(x)));
       console.log("GAPI initialized");
       const auth = gapi.auth2.getAuthInstance();
       setProfile(user_to_profile(auth.currentUser.get()));
@@ -669,7 +669,7 @@ function App() {
         console.log(user);
         setProfile(user_to_profile(user));
       });
-      await gdriveDatabase.init().catch(alert);
+      await gdriveDatabase.init().catch(x => alert(JSON.stringify(x)));
       setInitialized(true);
     });
 
@@ -679,9 +679,9 @@ function App() {
     });
   }, []);
 
-//     if (true) {
-//       return <ProgramEditor />
-//     }
+  //     if (true) {
+  //       return <ProgramEditor />
+  //     }
 
   if (!initialized) {
     return <AppScreen />;
