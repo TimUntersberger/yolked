@@ -14,6 +14,7 @@ import LoadingScreen from "./LoadingScreen";
 import AppScreen from "./AppScreen";
 import { Dialog, Menu } from "@headlessui/react";
 import fuzzysort from "fuzzysort";
+// import ProgramEditor from "./ProgramEditor";
 
 function TableView(props: any) {
   const [data, setData] = useState<[any, any][]>([]);
@@ -658,9 +659,9 @@ function App() {
 
   useEffect(() => {
     GApi.load().then(async () => {
-      await idb.open();
+      await idb.open().catch(alert);
       console.log("GAPI loaded");
-      await GApi.init();
+      await GApi.init().catch(alert);
       console.log("GAPI initialized");
       const auth = gapi.auth2.getAuthInstance();
       setProfile(user_to_profile(auth.currentUser.get()));
@@ -668,7 +669,7 @@ function App() {
         console.log(user);
         setProfile(user_to_profile(user));
       });
-      await gdriveDatabase.init();
+      await gdriveDatabase.init().catch(alert);
       setInitialized(true);
     });
 
@@ -678,9 +679,9 @@ function App() {
     });
   }, []);
 
-  //   if (true) {
-  //     return <ProgramEditor />
-  //   }
+//     if (true) {
+//       return <ProgramEditor />
+//     }
 
   if (!initialized) {
     return <AppScreen />;
