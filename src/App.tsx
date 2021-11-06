@@ -669,7 +669,6 @@ function App() {
         console.log(user);
         setProfile(user_to_profile(user));
       });
-      await gdriveDatabase.init().catch(x => alert("Failed to init GoogleDriveDatabase: " + JSON.stringify(x)));
       setInitialized(true);
     });
 
@@ -678,6 +677,12 @@ function App() {
       setSignedIn(GApi.signed_in);
     });
   }, []);
+
+  useEffect(() => {
+    if (signedIn) {
+      gdriveDatabase.init().catch(x => alert("Failed to init GoogleDriveDatabase: " + JSON.stringify(x)));
+    }
+  }, [signedIn])
 
   //     if (true) {
   //       return <ProgramEditor />
