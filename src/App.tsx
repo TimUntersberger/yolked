@@ -5,7 +5,7 @@ import {
   Route,
   useHistory,
 } from "react-router-dom";
-import { BiHistory, BiPlus, BiDotsVerticalRounded } from "react-icons/bi";
+import { BiHistory, BiPlus, BiDotsVerticalRounded, BiUser } from "react-icons/bi";
 import { IoFastFoodOutline } from "react-icons/io5";
 import { Flex, Grid, Button } from "./ui";
 import { useConst, useForceUpdate, useGdriveDatabase, useIndexedDatabase } from "./hooks";
@@ -191,6 +191,7 @@ function ExerciseDialog(props: {
             open={newExerciseModalOpen}
             onConfirm={(name) => {
               idb.insert("exercises", null, name).then((id) => {
+                alert(id);
                 setExercises([
                   ...exercises,
                   {
@@ -527,79 +528,9 @@ function user_to_profile(user?: gapi.auth2.GoogleUser): Profile | null {
   return null;
 }
 
-function TopBar(props: any) {
-  const gdb = useGdriveDatabase()
-  const idb = useIndexedDatabase()
-
-  const profileMenuItems = [
-    {
-      name: "Synchronize",
-      handler: () => {
-        gdb.sync(idb)
-      }
-    },
-    {
-      name: "Exercises",
-      handler: () => { },
-    },
-    {
-      name: "Sign Out",
-      handler: () => {
-        GApi.sign_out();
-      },
-    },
-  ];
-
-  return (
-    <Flex centerVertical className="p-2 bg-gray-100 h-12">
-      <span className="text-xl">Yolked</span>
-      <Flex centerVertical className="ml-auto">
-        <div className="mr-2">
-          {props.profile && (
-            <Menu>
-              <Menu.Button className="flex">
-                <img
-                  src={props.profile.image}
-                  className="mr-1 rounded-full h-8"
-                ></img>
-              </Menu.Button>
-              <Menu.Items className="absolute bg-gray-100 right-0 mr-1 mt-2 rounded-md py-2">
-                <Menu.Item
-                  as="p"
-                  className={`py-1 px-3 text-gray-500 flex items-center`}
-                >
-                  <img
-                    src={props.profile.image}
-                    className="mr-2 rounded-full h-7"
-                  ></img>
-                  <span className="text-lg">{props.profile.name}</span>
-                </Menu.Item>
-                <hr className="border-gray-300" />
-                {profileMenuItems.map((i, idx) => {
-                  return (
-                    <Menu.Item
-                      onClick={i.handler}
-                      key={idx}
-                      as="p"
-                      className={`py-1 px-3 ${!!i.handler
-                        ? "cursor-pointer hover:bg-gray-200"
-                        : "text-gray-500"
-                        }`}
-                    >
-                      {i.name}
-                    </Menu.Item>
-                  );
-                })}
-              </Menu.Items>
-            </Menu>
-          )}
-        </div>
-      </Flex>
-    </Flex>
-  );
-}
-
-function BottomBar() {
+function BottomBar(props: {
+  profile: Profile
+}) {
   const history = useHistory();
 
   const bottomBarItems = [
@@ -609,6 +540,14 @@ function BottomBar() {
       handler: () => {
         history.push("history");
         console.log("history");
+      },
+    },
+    {
+      name: "PROFILE",
+      icon: BiUser,
+      handler: () => {
+        history.push("profile");
+        console.log("profile");
       },
     },
     {
@@ -629,13 +568,13 @@ function BottomBar() {
   ];
 
   return (
-    <Flex centerHorizontal className="bg-gray-100 mt-auto shadow">
+    <Flex centerHorizontal className="bg-gray-100 mt-auto pb-5 shadow">
       {bottomBarItems.map((i, idx) => {
         return (
           <Grid
             key={idx}
             centerItemsHorizontal
-            columns="repeat(auto-fill, minmax(28vw, 1fr))"
+            columns="repeat(auto-fill, minmax(20vw, 1fr))"
             className="text-t p-2 cursor-pointer hover:bg-gray-200"
             onClick={i.handler}
           >
@@ -655,6 +594,7 @@ function App() {
   const [signingIn, setSigningIn] = useState(false);
   const gdriveDatabase = useGdriveDatabase();
   const idb = useIndexedDatabase();
+  const gdb = useGdriveDatabase();
   const history = useHistory();
 
   useEffect(() => {
@@ -696,7 +636,7 @@ function App() {
     return <LoadingScreen message="Signing in" />;
   }
 
-  if (!signedIn) {
+  if (!signedIn || !profile) {
     return (
       <Flex className="h-full" column centerVertical centerHorizontal>
         <Button
@@ -719,8 +659,7 @@ function App() {
 
   return (
     <Flex column className="h-full">
-      <TopBar profile={profile} />
-      <Flex className="p-2 h-full overflow-y-scroll">
+      <Flex className="p-5 h-full overflow-y-scroll">
         <Switch>
           <Route exact path="/active">
             <ActiveWorkout
@@ -740,6 +679,18 @@ function App() {
               }}
             />
           </Route>
+          <Route exact path="/profile">
+            <Flex column className="w-full" centerHorizontal>
+              <img className="rounded-full mt-5" src={profile.image} />
+              <span className="text-2xl mt-5">{profile.name}</span>
+              <button className="mt-auto w-full py-2 bg-gray-300" onClick={() => {
+                gdb.sync(idb);
+              }}>Synchronize</button>
+              <button className="w-full mt-3 py-2 bg-gray-300" onClick={() => {
+                GApi.sign_out();
+              }}>Sign out</button>
+            </Flex>
+          </Route>
           <Route exact path="/programs">
             <TableView title="Programs" tableName="programs"></TableView>
           </Route>
@@ -751,7 +702,7 @@ function App() {
           </Route>
         </Switch>
       </Flex>
-      <BottomBar />
+      <BottomBar profile={profile} />
     </Flex>
   );
 }
