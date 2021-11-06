@@ -9,7 +9,7 @@ export class Table {
   constructor(
     public name: string,
     public sheet: GSheet
-  ) {}
+  ) { }
 
   public async add(...data: any[]) {
     return this.sheet.append([data])
@@ -23,8 +23,8 @@ export class Table {
 export default class GdriveDb {
   private table_names: string[]
   private prefixed_table_names: string[]
-  
-  constructor(table_names: string[]){
+
+  constructor(table_names: string[]) {
     this.table_names = table_names
     this.prefixed_table_names = table_names.map(x => TABLE_PREFIX + x)
   }
@@ -39,8 +39,8 @@ export default class GdriveDb {
       const sheet = await GApi.sheets.get_by_name(sheet_name);
 
       if (sheet) {
-        const data = (await sheet.get_all()) || []
-        const idb_data = (await idb.to_array(tbl_name)).map(x => x.map(x => JSON.stringify(x)))
+        //const data = (await sheet.get_all()) || []
+        const idb_data = (await (idb as any)[tbl_name].toArray().map((x: any) => x.map((x: any) => JSON.stringify(x))))
 
         await sheet.clear()
         await sheet.update(idb_data)
@@ -57,7 +57,7 @@ export default class GdriveDb {
       index_sheet,
       ...tables
     ] = await Promise.all(
-      table_names.map(async name => new Table(name,await GApi.sheets.create(name)))
+      table_names.map(async name => new Table(name, await GApi.sheets.create(name)))
     )
 
     await index_sheet.sheet.append([tables.map(t => t.sheet.id)])

@@ -17,18 +17,20 @@ import fuzzysort from "fuzzysort";
 // import ProgramEditor from "./ProgramEditor";
 
 function TableView(props: any) {
-  const [data, setData] = useState<[any, any][]>([]);
+  const [data, setData] = useState<any[]>([]);
   const idb = useIndexedDatabase();
 
   useEffect(() => {
-    idb.to_array(props.tableName).then(setData);
+    (idb as any)[props.tableName].toArray().then(setData);
   }, [props.tableName]);
+
+  console.log(data)
 
   return (
     <div>
       <h2>{props.title}</h2>
       {data.map((x) => (
-        <p key={x[0]}>{x[1]}</p>
+        <p key={props.getId(x)}>{props.getDisplayValue(x)}</p>
       ))}
     </div>
   );
@@ -75,8 +77,8 @@ function WorkoutHistory(props: any) {
 
   useEffect(() => {
     idb
-      .to_array("workouts")
-      .then((pairs) => pairs.map((pair) => ({ id: pair[0], ...pair[1] })))
+      .workouts
+      .toArray()
       .then(setWorkouts);
   }, []);
 
@@ -164,8 +166,8 @@ function ExerciseDialog(props: {
 
   useEffect(() => {
     idb
-      .to_array("exercises")
-      .then((pairs) => pairs.map((pair) => ({ id: pair[0], name: pair[1] })))
+      .exercises
+      .toArray()
       .then(setExercises);
   }, []);
 
@@ -190,7 +192,7 @@ function ExerciseDialog(props: {
           <NewExerciseDialog
             open={newExerciseModalOpen}
             onConfirm={(name) => {
-              idb.insert("exercises", null, name).then((id) => {
+              idb.exercises.add({ name }).then((id) => {
                 setExercises([
                   ...exercises,
                   {
@@ -664,7 +666,8 @@ function App() {
             <ActiveWorkout
               onFinish={(startTime, endTime, exercises) => {
                 idb
-                  .insert("workouts", null, {
+                  .workouts
+                  .add({
                     startTime,
                     endTime,
                     exercises,
@@ -691,10 +694,20 @@ function App() {
             </Flex>
           </Route>
           <Route exact path="/programs">
-            <TableView title="Programs" tableName="programs"></TableView>
+            <TableView 
+              title="Programs" 
+              tableName="programs" 
+              getKey={(x: any) => x.id} 
+              getDisplayValue={(x: any) => x.name}
+            ></TableView>
           </Route>
           <Route exact path="/exercises">
-            <TableView title="Exercises" tableName="exercises"></TableView>
+            <TableView 
+              title="Exercises" 
+              tableName="exercises" 
+              getKey={(x: any) => x.id} 
+              getDisplayValue={(x: any) => x.name}
+            ></TableView>
           </Route>
           <Route exact path="/history">
             <WorkoutHistory />
