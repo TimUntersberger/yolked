@@ -79,7 +79,7 @@ export default class IndexedDatabase {
     })
   }
 
-  public async insert(storeName: string, key: any, value: any): Promise<any> {
+  public insert(storeName: string, key: any, value: any): Promise<any> {
     return new Promise(async (resolve, reject) => {
       await this.transaction(storeName, s => {
         const req = s.add(value, key)
@@ -89,7 +89,7 @@ export default class IndexedDatabase {
     })
   }
 
-  public async delete(storeName: string, id: any) {
+  public delete(storeName: string, id: any) {
     return new Promise(async (resolve, reject) => {
       await this.transaction(storeName, s => {
         const req = s.delete(id)
@@ -99,7 +99,7 @@ export default class IndexedDatabase {
     })
   }
 
-  public async select(storeName: string, key: any, value: any) {
+  public select(storeName: string, key: any, value: any) {
     return new Promise(async (resolve, reject) => {
       await this.transaction(storeName, s => {
         const req = s.add(value, key)

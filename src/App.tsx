@@ -191,7 +191,6 @@ function ExerciseDialog(props: {
             open={newExerciseModalOpen}
             onConfirm={(name) => {
               idb.insert("exercises", null, name).then((id) => {
-                alert(id);
                 setExercises([
                   ...exercises,
                   {
