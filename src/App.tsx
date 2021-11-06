@@ -659,9 +659,9 @@ function App() {
 
   useEffect(() => {
     GApi.load().then(async () => {
-      await idb.open().catch(x => alert(JSON.stringify(x)));
+      await idb.open().catch(x => alert("Failed to open IndexedDatabase: " + JSON.stringify(x)));
       console.log("GAPI loaded");
-      await GApi.init().catch(x => alert(JSON.stringify(x)));
+      await GApi.init().catch(x => alert("Failed to init GApi: " + JSON.stringify(x)));
       console.log("GAPI initialized");
       const auth = gapi.auth2.getAuthInstance();
       setProfile(user_to_profile(auth.currentUser.get()));
@@ -669,7 +669,7 @@ function App() {
         console.log(user);
         setProfile(user_to_profile(user));
       });
-      await gdriveDatabase.init().catch(x => alert(JSON.stringify(x)));
+      await gdriveDatabase.init().catch(x => alert("Failed to init GoogleDriveDatabase: " + JSON.stringify(x)));
       setInitialized(true);
     });
 
