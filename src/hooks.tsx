@@ -11,24 +11,9 @@ export function useForceUpdate() {
   return update;
 }
 
-const idb = new IndexedDatabase({
-  name: "YolkedDb",
-  version: 8,
-  tables: [
-    {
-      name: "exercises",
-      autoIncrement: true
-    },
-    {
-      name: "workouts",
-      autoIncrement: true
-    },
-    {
-      name: "programs",
-      autoIncrement: true
-    },
-  ]
-});
+const idb = new IndexedDatabase();
+
+(window as any).IDB = idb;
 
 const drive = new GdriveDatabase(["exercises", "workouts", "programs"]);
 
