@@ -20,14 +20,17 @@ export default defineConfig({
         icons: [
           {
             "src": "assets/yolked.png",
+            "type": "image/png",
             "sizes": "180x180",
           },
           {
             "src": "assets/yolked.png",
+            "type": "image/png",
             "sizes": "48x48"
           },
           {
             "src": "assets/yolked.png",
+            "type": "image/png",
             "sizes": "32x32"
           }
         ],
