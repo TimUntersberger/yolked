@@ -1,20 +1,19 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  HashRouter as Router,
   Switch,
   Route,
   useHistory,
 } from "react-router-dom";
-import { BiHistory, BiPlus, BiDotsVerticalRounded, BiUser } from "react-icons/bi";
-import { IoFastFoodOutline } from "react-icons/io5";
-import { Flex, Grid, Button } from "./ui";
-import { useConst, useForceUpdate, useGdriveDatabase, useIndexedDatabase } from "./hooks";
+import { Flex, Button } from "./ui";
+import { useGdriveDatabase, useIndexedDatabase } from "./hooks";
 import GApi from "./gapi";
 import LoadingScreen from "./LoadingScreen";
 import AppScreen from "./AppScreen";
-import { Dialog, Menu } from "@headlessui/react";
-import fuzzysort from "fuzzysort";
-// import ProgramEditor from "./ProgramEditor";
+import { Profile } from "./types";
+import ProfilePage from "./pages/ProfilePage";
+import ActiveWorkoutPage from "./pages/ActiveWorkoutPage";
+import BottomBar from "./components/BottomBar";
+import WorkoutHistoryPage from "./pages/WorkoutHistoryPage";
 
 function TableView(props: any) {
   const [data, setData] = useState<any[]>([]);
@@ -23,8 +22,6 @@ function TableView(props: any) {
   useEffect(() => {
     (idb as any)[props.tableName].toArray().then(setData);
   }, [props.tableName]);
-
-  console.log(data)
 
   return (
     <div>
@@ -35,484 +32,6 @@ function TableView(props: any) {
     </div>
   );
 }
-
-type Workout = {
-  id: number;
-  startTime: number;
-  endTime: number;
-  exercises: ActiveExercise[];
-};
-
-function Workout(props: { workout: Workout }) {
-  const [showDetails, setShowDetails] = useState(false);
-
-  return (
-    <Flex
-      onClick={() => setShowDetails(!showDetails)}
-      column
-      className="border w-full rounded mt-2 p-1"
-    >
-      <Flex className="w-full text-lg">
-        <span>{new Date(props.workout.startTime).toLocaleDateString()}</span>
-        <span className="ml-auto">
-          {new Date(props.workout.startTime).toLocaleTimeString()}
-        </span>
-      </Flex>
-      {showDetails && (
-        <Flex column>
-          {props.workout.exercises.map((e, idx) => (
-            <span key={idx}>
-              {e.name} {e.sets.length}
-            </span>
-          ))}
-        </Flex>
-      )}
-    </Flex>
-  );
-}
-
-function WorkoutHistory(props: any) {
-  const [workouts, setWorkouts] = useState<Workout[]>([]);
-  const idb = useIndexedDatabase();
-
-  useEffect(() => {
-    idb
-      .workouts
-      .toArray()
-      .then(setWorkouts);
-  }, []);
-
-  return (
-    <Flex column className="w-full">
-      <p className="text-xl">Workout History</p>
-      <Flex column className="w-full">
-        {workouts.map((w) => (
-          <Workout key={w.id} workout={w} />
-        ))}
-      </Flex>
-    </Flex>
-  );
-}
-
-type Exercise = {
-  id: number;
-  name: string;
-};
-
-function NewExerciseDialog(props: {
-  open: boolean;
-  onConfirm: (name: string) => void;
-  onCancel: () => void;
-  onClose: () => void;
-}) {
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const [name, setName] = useState("");
-
-  return (
-    <Dialog
-      open={props.open}
-      onClose={props.onClose}
-      initialFocus={inputRef}
-      className="fixed z-10 inset-0 overflow-y-auto"
-    >
-      <Flex centerHorizontal centerVertical className="min-h-screen">
-        <Dialog.Overlay className="fixed inset-0 opacity-30 bg-black min-h-screen min-w-full" />
-        <Flex
-          column
-          style={{ height: "140px" }}
-          className="z-10 bg-white border rounded-lg max-w-sm w-full mx-5 p-3 mt-5 mb-10"
-        >
-          <Dialog.Title className="text-2xl">New Exercise</Dialog.Title>
-          <input
-            ref={inputRef}
-            className="bg-gray-100 rounded mt-4 px-2 py-1"
-            placeholder="Name"
-            value={name}
-            onChange={(ev) => setName(ev.target.value)}
-          />
-          <Flex className="mt-2 mx-2">
-            <Button
-              onClick={props.onCancel}
-              borderless
-              className="text-red-600"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => props.onConfirm(name)}
-              borderless
-              className="text-green-500 ml-auto"
-            >
-              Save
-            </Button>
-          </Flex>
-        </Flex>
-      </Flex>
-    </Dialog>
-  );
-}
-
-function ExerciseDialog(props: {
-  open: boolean;
-  onClose: () => void;
-  onSelect: (exercise: Exercise) => void;
-}) {
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const [filter, setFilter] = useState("");
-  const [newExerciseModalOpen, setNewExerciseModalOpen] = useState(false);
-  const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [filteredExercises, setFilteredExercises] = useState<Exercise[]>([]);
-  const idb = useIndexedDatabase();
-
-  useEffect(() => {
-    idb
-      .exercises
-      .toArray()
-      .then(setExercises);
-  }, []);
-
-  useEffect(() => {
-    setFilteredExercises(
-      fuzzysort
-        .go<Exercise>(filter, exercises, { key: "name" })
-        .map((res) => res.obj)
-    );
-  }, [exercises, filter]);
-
-  return (
-    <Dialog
-      open={props.open}
-      onClose={props.onClose}
-      initialFocus={inputRef}
-      className="fixed z-10 inset-0 overflow-y-auto"
-    >
-      <Flex centerHorizontal className="min-h-screen">
-        <Dialog.Overlay className="fixed inset-0 opacity-30 bg-black min-h-screen min-w-full" />
-        {newExerciseModalOpen && (
-          <NewExerciseDialog
-            open={newExerciseModalOpen}
-            onConfirm={(name) => {
-              idb.exercises.add({ name }).then((id) => {
-                setExercises([
-                  ...exercises,
-                  {
-                    id,
-                    name,
-                  },
-                ]);
-                setNewExerciseModalOpen(false);
-              }).catch(x => alert(JSON.stringify(x)));
-            }}
-            onCancel={() => {
-              setNewExerciseModalOpen(false);
-            }}
-            onClose={() => setNewExerciseModalOpen(false)}
-          />
-        )}
-        {
-          <Flex
-            column
-            style={{ height: "90vh" }}
-            className="bg-white z-10 border rounded-lg max-w-sm w-full mx-2 p-3 mt-5 mb-10"
-          >
-            <Flex>
-              <Dialog.Title className="text-2xl">Exercises</Dialog.Title>
-              <button
-                onClick={() => {
-                  setNewExerciseModalOpen(true);
-                }}
-                className="ml-auto mr-2 text-blue-400"
-              >
-                Add
-              </button>
-            </Flex>
-            <input
-              value={filter}
-              onChange={(ev) => setFilter(ev.target.value)}
-              className="bg-gray-100 rounded mt-3 px-2 py-1"
-              placeholder="Search"
-              ref={inputRef}
-            />
-            <Flex column className="mt-4">
-              {(filter == "" ? exercises : filteredExercises)
-                .flatMap((ex, idx) => [
-                  <hr key={idx + "hr"} />,
-                  <span
-                    onClick={() => {
-                      props.onSelect(ex);
-                      props.onClose();
-                    }}
-                    key={idx}
-                    className="py-2 cursor-pointer"
-                  >
-                    {ex.name}
-                  </span>,
-                ])
-                .slice(1)}
-            </Flex>
-          </Flex>
-        }
-      </Flex>
-    </Dialog>
-  );
-}
-
-type Set = {
-  weight: string;
-  reps: string;
-};
-
-type ActiveExercise = {
-  id: number;
-  name: string;
-  sets: Set[];
-};
-
-function ActiveSet(props: {
-  number: number;
-  set: Set;
-  onRemoveRequest: () => void;
-}) {
-  const forceUpdate = useForceUpdate();
-  const [showOptions, setShowOptions] = useState(false);
-  const menuItems = [
-    {
-      name: "Remove Set",
-      color: "red-600",
-      handler: props.onRemoveRequest,
-    },
-  ];
-
-  return (
-    <Flex column className="w-full">
-      <Flex
-        className="w-full mt-2"
-        onClick={() => setShowOptions(!showOptions)}
-      >
-        <span className="bg-gray-100 w-6 text-center rounded-md mr-auto cursor-pointer">
-          {props.number}
-        </span>
-        <input
-          onClick={(e) => e.stopPropagation()}
-          onChange={(e) => {
-            props.set.weight = e.target.value;
-            forceUpdate();
-          }}
-          value={props.set.weight}
-          className="bg-gray-100 w-12 text-center rounded-md"
-        />
-        <span className="mx-2">x</span>
-        <input
-          onClick={(e) => e.stopPropagation()}
-          onChange={(e) => {
-            props.set.reps = e.target.value;
-            forceUpdate();
-          }}
-          value={props.set.reps}
-          className="bg-gray-100 w-12 text-center rounded-md"
-        />
-      </Flex>
-
-      {showOptions && (
-        <Flex centerHorizontal>
-          {menuItems.map((i, idx) => (
-            <Button key={idx} borderless onClick={i.handler} className={`text-${i.color}`}>
-              {i.name}
-            </Button>
-          ))}
-        </Flex>
-      )}
-    </Flex>
-  );
-}
-
-function ActiveExercise(props: {
-  exercise: ActiveExercise;
-  onRemoveRequest: () => void;
-}) {
-  const forceUpdate = useForceUpdate();
-  const menuItems = [
-    {
-      name: "Remove Exercise",
-      handler: props.onRemoveRequest,
-    },
-  ];
-
-  return (
-    <Flex column className="w-full mt-4">
-      <Flex>
-        <span className="text-2xl">{props.exercise.name}</span>
-        <Menu>
-          <Menu.Button className="ml-auto">
-            <BiDotsVerticalRounded className="text-xl"></BiDotsVerticalRounded>
-          </Menu.Button>
-          <Menu.Items className="absolute border bg-white right-0 mr-1 mt-2 rounded-md">
-            {menuItems.map((i, idx) => {
-              return (
-                <Menu.Item
-                  onClick={i.handler}
-                  key={idx}
-                  as="p"
-                  className={`py-1 px-3 cursor-pointer hover:bg-gray-200`}
-                >
-                  {i.name}
-                </Menu.Item>
-              );
-            })}
-          </Menu.Items>
-        </Menu>
-      </Flex>
-      <div className="w-full px-5">
-        {props.exercise.sets.map((s, idx) => (
-          <ActiveSet
-            key={idx}
-            number={idx + 1}
-            set={s}
-            onRemoveRequest={() => {
-              props.exercise.sets.splice(idx, 1);
-              forceUpdate();
-            }}
-          />
-        ))}
-        <Button
-          onClick={() => {
-            const prev_set =
-              props.exercise.sets[props.exercise.sets.length - 1] || {};
-            props.exercise.sets.push({
-              weight: prev_set.weight || "",
-              reps: prev_set.reps || "",
-            });
-            forceUpdate();
-          }}
-          borderless
-          padding=""
-          className="bg-gray-200 w-full mt-3 rounded-md"
-        >
-          Add set
-        </Button>
-      </div>
-    </Flex>
-  );
-}
-
-function ActiveWorkout(props: {
-  onFinish: (
-    startTime: number,
-    endTime: number,
-    exercises: ActiveExercise[]
-  ) => void;
-  onCancel: () => void;
-}) {
-  const [startTime, setStartTime] = useState(() => Date.now());
-  const [done, setDone] = useState(false);
-  const [currentTime, setCurrentTime] = useState(startTime);
-  const [exerciseModalOpen, setExerciseModalOpen] = useState(false);
-  const [activeExercises, setActiveExercises] = useState<ActiveExercise[]>([]);
-
-  const deltaTime = currentTime - startTime;
-
-  // active workout
-  const localStorageId = "aw";
-
-  useEffect(() => {
-    const aw = localStorage.getItem(localStorageId);
-
-    if (aw) {
-      const aw_obj = JSON.parse(aw);
-      setStartTime(aw_obj.startTime);
-      setActiveExercises(aw_obj.activeExercises);
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem(
-      localStorageId,
-      JSON.stringify({
-        startTime,
-        activeExercises,
-      })
-    );
-  }, [done, activeExercises]);
-
-  useEffect(() => {
-    if (done) {
-      return;
-    }
-    const interval = setInterval(() => {
-      setCurrentTime(Date.now());
-    }, 1000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [done]);
-
-  return (
-    <Flex column centerHorizontal className="w-full h-full p-3">
-      <ExerciseDialog
-        open={exerciseModalOpen}
-        onClose={() => setExerciseModalOpen(false)}
-        onSelect={(ex) => {
-          setActiveExercises([
-            ...activeExercises,
-            { id: ex.id, name: ex.name, sets: [] },
-          ]);
-        }}
-      />
-      <span className="text-lg">
-        {new Date(deltaTime).toUTCString().slice(17, 26)}
-      </span>
-      {activeExercises.map((e, idx) => (
-        <ActiveExercise
-          key={idx}
-          exercise={e}
-          onRemoveRequest={() => {
-            setActiveExercises([
-              ...activeExercises.slice(0, idx),
-              ...activeExercises.slice(idx + 1),
-            ]);
-          }}
-        />
-      ))}
-      <Button
-        onClick={() => setExerciseModalOpen(true)}
-        borderless
-        className="bg-blue-200 w-full mt-5"
-      >
-        Add exercise
-      </Button>
-      <Flex className="w-full mt-2">
-        <Button
-          onClick={() => {
-            setDone(true);
-            localStorage.removeItem(localStorageId);
-            console.log("canceled")
-            props.onCancel();
-          }}
-          borderless
-          className="bg-red-200 w-full"
-        >
-          Cancel workout
-        </Button>
-        <Button
-          onClick={() => {
-            setDone(true);
-            props.onFinish(startTime, currentTime, activeExercises);
-          }}
-          borderless
-          className="bg-green-200 ml-2 w-full"
-        >
-          Finish workout
-        </Button>
-      </Flex>
-    </Flex>
-  );
-}
-
-type Profile = {
-  image: string;
-  name: string;
-};
 
 function user_to_profile(user?: gapi.auth2.GoogleUser): Profile | null {
   if (user) {
@@ -529,65 +48,6 @@ function user_to_profile(user?: gapi.auth2.GoogleUser): Profile | null {
   return null;
 }
 
-function BottomBar(props: {
-  profile: Profile
-}) {
-  const history = useHistory();
-
-  const bottomBarItems = [
-    {
-      name: "HISTORY",
-      icon: BiHistory,
-      handler: () => {
-        history.push("history");
-        console.log("history");
-      },
-    },
-    {
-      name: "PROFILE",
-      icon: BiUser,
-      handler: () => {
-        history.push("profile");
-        console.log("profile");
-      },
-    },
-    {
-      name: "WORKOUT",
-      icon: BiPlus,
-      handler: () => {
-        history.push("active");
-        console.log("workout");
-      },
-    },
-    {
-      name: "FOOD",
-      icon: IoFastFoodOutline,
-      handler: () => {
-        console.log("food");
-      },
-    },
-  ];
-
-  return (
-    <Flex centerHorizontal className="bg-gray-100 mt-auto pb-5 shadow">
-      {bottomBarItems.map((i, idx) => {
-        return (
-          <Grid
-            key={idx}
-            centerItemsHorizontal
-            columns="repeat(auto-fill, minmax(20vw, 1fr))"
-            className="text-t p-2 cursor-pointer hover:bg-gray-200"
-            onClick={i.handler}
-          >
-            <i.icon className="text-2xl"></i.icon>
-            {i.name}
-          </Grid>
-        );
-      })}
-    </Flex>
-  );
-}
-
 function App() {
   const [signedIn, setSignedIn] = useState(GApi.signed_in);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -595,7 +55,6 @@ function App() {
   const [signingIn, setSigningIn] = useState(false);
   const gdriveDatabase = useGdriveDatabase();
   const idb = useIndexedDatabase();
-  const gdb = useGdriveDatabase();
   const history = useHistory();
 
   useEffect(() => {
@@ -624,10 +83,6 @@ function App() {
       gdriveDatabase.init().catch(x => alert("Failed to init GoogleDriveDatabase: " + JSON.stringify(x)));
     }
   }, [signedIn])
-
-  //     if (true) {
-  //       return <ProgramEditor />
-  //     }
 
   if (!initialized) {
     return <AppScreen />;
@@ -663,7 +118,7 @@ function App() {
       <Flex className="p-5 h-full overflow-y-scroll">
         <Switch>
           <Route exact path="/active">
-            <ActiveWorkout
+            <ActiveWorkoutPage
               onFinish={(startTime, endTime, exercises) => {
                 idb
                   .workouts
@@ -682,16 +137,7 @@ function App() {
             />
           </Route>
           <Route exact path="/profile">
-            <Flex column className="w-full" centerHorizontal>
-              <img className="rounded-full mt-5" src={profile.image} />
-              <span className="text-2xl mt-5">{profile.name}</span>
-              <button className="mt-auto w-full py-2 bg-gray-300" onClick={() => {
-                gdb.sync(idb);
-              }}>Synchronize</button>
-              <button className="w-full mt-3 py-2 bg-gray-300" onClick={() => {
-                GApi.sign_out();
-              }}>Sign out</button>
-            </Flex>
+            <ProfilePage profile={profile}/>
           </Route>
           <Route exact path="/programs">
             <TableView 
@@ -710,11 +156,11 @@ function App() {
             ></TableView>
           </Route>
           <Route exact path="/history">
-            <WorkoutHistory />
+            <WorkoutHistoryPage />
           </Route>
         </Switch>
       </Flex>
-      <BottomBar profile={profile} />
+      <BottomBar />
     </Flex>
   );
 }

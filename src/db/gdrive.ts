@@ -40,7 +40,7 @@ export default class GdriveDb {
 
       if (sheet) {
         //const data = (await sheet.get_all()) || []
-        const idb_data = (await (idb as any)[tbl_name].toArray().map((x: any) => x.map((x: any) => JSON.stringify(x))))
+        const idb_data = (await (idb as any)[tbl_name].toArray()).map((x: any) => x.map((x: any) => JSON.stringify(x)))
 
         await sheet.clear()
         await sheet.update(idb_data)
