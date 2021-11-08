@@ -25,3 +25,9 @@ export type Exercise = {
   id: number;
   name: string;
 };
+
+export type Account = {
+  kind: "google",
+  name: string,
+  image: string
+}
