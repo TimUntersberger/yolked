@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from "react";
 import Quagga from "quagga";
 
+declare module Quagga {};
+
 export default function(props: {
   onDetected: (res: any) => void
 }) {
