@@ -31,10 +31,85 @@ function TableView(props: any) {
   );
 }
 
+function Container(props: any) {
+  return (
+    <Flex className="p-5 h-full overflow-y-scroll">
+      {props.children}
+    </Flex>
+  )
+}
+
+function FitnessSwitch() {
+  const idb = useIndexedDatabase();
+  const history = useHistory();
+
+  return (
+    <>
+      <Container>
+        <Switch>
+          <Route exact path="/fitness/active">
+            <ActiveWorkoutPage
+              onFinish={(startTime, endTime, exercises) => {
+                idb
+                  .workouts
+                  .add({
+                    startTime,
+                    endTime,
+                    exercises,
+                  })
+                  .then(() => {
+                    history.push("history");
+                  });
+              }}
+              onCancel={() => {
+                history.push("history");
+              }}
+            />
+          </Route>
+          <Route exact path="/fitness/profile">
+            <ProfilePage />
+          </Route>
+          <Route exact path="/fitness/programs">
+            <TableView
+              title="Programs"
+              tableName="programs"
+              getKey={(x: any) => x.id}
+              getDisplayValue={(x: any) => x.name}
+            ></TableView>
+          </Route>
+          <Route exact path="/fitness/exercises">
+            <TableView
+              title="Exercises"
+              tableName="exercises"
+              getKey={(x: any) => x.id}
+              getDisplayValue={(x: any) => x.name}
+            ></TableView>
+          </Route>
+          <Route exact path="/fitness/history">
+            <WorkoutHistoryPage />
+          </Route>
+        </Switch>
+      </Container>
+      <BottomBar mode="fitness" />
+    </>
+  )
+}
+
+function FoodSwitch() {
+  return (
+  <>
+    <Container>
+      <Switch>
+      </Switch>
+      </Container>
+      <BottomBar mode="food" />
+    </>
+  )
+}
+
 function App() {
   const [initialized, setInitialized] = useState(false);
   const idb = useIndexedDatabase();
-  const history = useHistory();
 
   useEffect(() => {
     idb
@@ -52,52 +127,14 @@ function App() {
   return (
     <AccountProvider>
       <Flex column className="h-full">
-        <Flex className="p-5 h-full overflow-y-scroll">
-          <Switch>
-            <Route exact path="/active">
-              <ActiveWorkoutPage
-                onFinish={(startTime, endTime, exercises) => {
-                  idb
-                    .workouts
-                    .add({
-                      startTime,
-                      endTime,
-                      exercises,
-                    })
-                    .then(() => {
-                      history.push("history");
-                    });
-                }}
-                onCancel={() => {
-                  history.push("history");
-                }}
-              />
-            </Route>
-            <Route exact path="/profile">
-              <ProfilePage />
-            </Route>
-            <Route exact path="/programs">
-              <TableView
-                title="Programs"
-                tableName="programs"
-                getKey={(x: any) => x.id}
-                getDisplayValue={(x: any) => x.name}
-              ></TableView>
-            </Route>
-            <Route exact path="/exercises">
-              <TableView
-                title="Exercises"
-                tableName="exercises"
-                getKey={(x: any) => x.id}
-                getDisplayValue={(x: any) => x.name}
-              ></TableView>
-            </Route>
-            <Route exact path="/history">
-              <WorkoutHistoryPage />
-            </Route>
-          </Switch>
-        </Flex>
-        <BottomBar />
+        <Switch>
+          <Route path="/fitness">
+            <FitnessSwitch />
+          </Route>
+          <Route path="/food">
+            <FoodSwitch />
+          </Route>
+        </Switch>
       </Flex>
     </AccountProvider>
   );

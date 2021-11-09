@@ -1,5 +1,6 @@
 import { useState, useCallback, useContext } from "react";
 import { AccountContext } from "./contexts/AccountContext";
+import { ModeContext } from "./contexts/ModeContext";
 import { GdriveDatabase, IndexedDatabase } from "./db";
 
 export const useConst: <T>(value: () => T) => T = (value) => useState(value)[0];
@@ -28,4 +29,8 @@ export function useGdriveDatabase(): GdriveDatabase {
 
 export function useAccount() {
   return useContext(AccountContext);
+}
+
+export function useMode() {
+  return useContext(ModeContext);
 }

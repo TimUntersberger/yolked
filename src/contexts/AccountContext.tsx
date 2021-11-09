@@ -17,7 +17,6 @@ export const AccountProvider = (props: any) => {
   })
 
   useEffect(() => {
-    console.log("Account changed: ", value)
     if (!value) {
       localStorage.removeItem("account")
     } else {

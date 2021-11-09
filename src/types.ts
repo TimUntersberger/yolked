@@ -31,3 +31,5 @@ export type Account = {
   name: string,
   image: string
 }
+
+export type Mode = "fitness" | "food"

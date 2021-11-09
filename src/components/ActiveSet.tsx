@@ -28,6 +28,7 @@ export default function(props: {
           {props.number}
         </span>
         <input
+          type="number"
           onClick={(e) => e.stopPropagation()}
           onChange={(e) => {
             props.set.weight = e.target.value;
@@ -39,6 +40,7 @@ export default function(props: {
         <span className="mx-2">x</span>
         <input
           onClick={(e) => e.stopPropagation()}
+          type="number"
           onChange={(e) => {
             props.set.reps = e.target.value;
             forceUpdate();

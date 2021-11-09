@@ -68,7 +68,7 @@ export default function(props: {
           ]);
         }}
       />
-      <span className="text-lg">
+      <span className="text-xl">
         {new Date(deltaTime).toUTCString().slice(17, 26)}
       </span>
       {activeExercises.map((e, idx) => (
