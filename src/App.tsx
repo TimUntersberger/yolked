@@ -12,6 +12,7 @@ import ActiveWorkoutPage from "./pages/ActiveWorkoutPage";
 import BottomBar from "./components/BottomBar";
 import WorkoutHistoryPage from "./pages/WorkoutHistoryPage";
 import { AccountProvider } from "./contexts/AccountContext";
+import BarCodeScanner from "./components/BarCodeScanner";
 
 function TableView(props: any) {
   const [data, setData] = useState<any[]>([]);
@@ -110,6 +111,7 @@ function FoodSwitch() {
 function App() {
   const [initialized, setInitialized] = useState(false);
   const idb = useIndexedDatabase();
+  const [res, setRes] = useState();
 
   useEffect(() => {
     idb
@@ -119,6 +121,19 @@ function App() {
       })
       .catch(x => alert("Failed to open IndexedDatabase: " + JSON.stringify(x)));
   }, []);
+
+  if (!res) {
+    return <BarCodeScanner onDetected={setRes}/>
+  } else {
+    console.log(res)
+    return (
+      <span>
+        {
+          (res! as any).codeResult.code
+        }
+      </span>
+    )
+  }
 
   if (!initialized) {
     return <AppScreen />;
