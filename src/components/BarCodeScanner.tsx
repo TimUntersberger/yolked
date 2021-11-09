@@ -1,7 +1,5 @@
 import React, { useEffect, useRef } from "react";
-
-// Have to do using require for typescript
-const Quagga = require("quagga");
+import Quagga from "quagga";
 
 export default function(props: {
   onDetected: (res: any) => void
