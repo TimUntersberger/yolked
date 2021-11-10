@@ -7,6 +7,7 @@ import { VitePWA as pwa } from "vite-plugin-pwa";
 export default defineConfig({
   server: {
     https: true,
+    port: 3000
   },
   base: "/yolked/",
   plugins: [
