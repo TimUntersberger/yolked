@@ -3,6 +3,7 @@ import {
   Switch,
   Route,
   useHistory,
+  Redirect,
 } from "react-router-dom";
 import { Flex } from "./ui";
 import { useIndexedDatabase } from "./hooks";
@@ -12,7 +13,7 @@ import ActiveWorkoutPage from "./pages/ActiveWorkoutPage";
 import BottomBar from "./components/BottomBar";
 import WorkoutHistoryPage from "./pages/WorkoutHistoryPage";
 import { AccountProvider } from "./contexts/AccountContext";
-import BarCodeScanner from "./components/BarCodeScanner";
+import DiaryPage from "./pages/DiaryPage";
 
 function TableView(props: any) {
   const [data, setData] = useState<any[]>([]);
@@ -98,10 +99,13 @@ function FitnessSwitch() {
 
 function FoodSwitch() {
   return (
-  <>
-    <Container>
-      <Switch>
-      </Switch>
+    <>
+      <Container>
+        <Switch>
+          <Route exact path="/food/diary">
+            <DiaryPage />
+          </Route>
+        </Switch>
       </Container>
       <BottomBar mode="food" />
     </>
@@ -111,7 +115,6 @@ function FoodSwitch() {
 function App() {
   const [initialized, setInitialized] = useState(false);
   const idb = useIndexedDatabase();
-  const [res, setRes] = useState();
 
   useEffect(() => {
     idb
@@ -122,19 +125,6 @@ function App() {
       .catch(x => alert("Failed to open IndexedDatabase: " + JSON.stringify(x)));
   }, []);
 
-  if (!res) {
-    return <BarCodeScanner onDetected={setRes}/>
-  } else {
-    console.log(res)
-    return (
-      <span>
-        {
-          (res! as any).codeResult.code
-        }
-      </span>
-    )
-  }
-
   if (!initialized) {
     return <AppScreen />;
   }
@@ -143,6 +133,9 @@ function App() {
     <AccountProvider>
       <Flex column className="h-full">
         <Switch>
+          <Route exact path="/">
+            <Redirect to="/fitness" />
+          </Route>
           <Route path="/fitness">
             <FitnessSwitch />
           </Route>

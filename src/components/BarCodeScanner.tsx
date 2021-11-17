@@ -81,6 +81,6 @@ export default function(props: {
   }, [])
 
   return (
-    <div ref={ref}></div>
+    <div className="quagga-container h-full overflow-y-hidden" ref={ref}></div>
   )
 }
