@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useHistory } from "react-router-dom";
 
 export function Flex(props: any) {
@@ -87,5 +87,44 @@ export function Button({ className, borderless, padding, ...props }: any) {
     >
       {props.children}
     </button>
+  );
+}
+
+export function Input({ className, onChange, type, initialValue, ...props }: {
+  className: string,
+  initialValue: any,
+  type: string,
+  onChange: (value: any) => void,
+} & any) {
+  className = `px-2 border rounded ${className || ""}`
+  
+  const ref = useRef<HTMLInputElement>(null);
+  const [value, setValue] = useState(initialValue);
+
+  useEffect(() => {
+    onChange(value)
+    ref.current!.value = value as any;
+  }, [value])
+
+  return (
+    <input
+      {...props}
+      ref={ref}
+      type={type}
+      value={value}
+      onInput={() => {
+        const newValue = ref.current!.value
+        if (type == "number") {
+          if (Number(newValue) == NaN) {
+            ref.current!.value = value as any;
+          }
+
+          setValue(Number(newValue) as any)
+        } else {
+          setValue(newValue)
+        }
+      }}
+      className={className}
+    />
   );
 }

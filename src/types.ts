@@ -32,4 +32,14 @@ export type Account = {
   image: string
 }
 
+export type Food = {
+  code: string,
+  name: string,
+  company: string,
+  calories: number,
+  proteins: number,
+  fats: number,
+  carbs: number
+}
+
 export type Mode = "fitness" | "food"
