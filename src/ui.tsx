@@ -72,7 +72,7 @@ export function RouterLink(props: any) {
   );
 }
 
-export function Button({ className, borderless, padding, ...props }: any) {
+export const Button = React.forwardRef(({ className, borderless, padding, ...props }: any, ref: any) => {
   className = `bg-none cursor-pointer hover:bg-gray-200 ${className}`
   className += " " + (padding ?? "px-2 py-1")
 
@@ -83,12 +83,13 @@ export function Button({ className, borderless, padding, ...props }: any) {
   return (
     <button
       {...props}
+      ref={ref}
       className={className}
     >
       {props.children}
     </button>
   );
-}
+})
 
 export function Input({ className, onChange, type, initialValue, ...props }: {
   className: string,
@@ -97,7 +98,7 @@ export function Input({ className, onChange, type, initialValue, ...props }: {
   onChange: (value: any) => void,
 } & any) {
   className = `px-2 border rounded ${className || ""}`
-  
+
   const ref = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState(initialValue);
 
@@ -115,7 +116,7 @@ export function Input({ className, onChange, type, initialValue, ...props }: {
       onInput={() => {
         const newValue = ref.current!.value
         if (type == "number") {
-          if (Number(newValue) == NaN) {
+          if (Number(newValue) === NaN) {
             ref.current!.value = value as any;
           }
 

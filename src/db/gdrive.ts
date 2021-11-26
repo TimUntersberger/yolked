@@ -2,7 +2,7 @@ import { GSheet } from "../gapi/gsheets"
 import IndexedDatabase from "./idb"
 import GApi from "../gapi"
 
-const TABLE_PREFIX = "__yolked_"
+const TABLE_PREFIX = import.meta.env.DEV ? "__yolked_dev_" : "__yolked_";
 const INDEX_TABLE_NAME = TABLE_PREFIX + "index"
 
 export class Table {

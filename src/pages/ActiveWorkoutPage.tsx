@@ -41,7 +41,7 @@ export default function(props: {
         activeExercises,
       })
     );
-  }, [done, activeExercises]);
+  }, [activeExercises]);
 
   useEffect(() => {
     if (done) {
@@ -106,6 +106,7 @@ export default function(props: {
         <Button
           onClick={() => {
             setDone(true);
+            localStorage.removeItem(localStorageId);
             props.onFinish(startTime, currentTime, activeExercises);
           }}
           borderless

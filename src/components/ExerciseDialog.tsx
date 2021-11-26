@@ -7,12 +7,13 @@ import { Button, Flex } from "../ui";
 
 function NewExerciseDialog(props: {
   open: boolean;
+  initialValue?: string,
   onConfirm: (name: string) => void;
   onCancel: () => void;
   onClose: () => void;
 }) {
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const [name, setName] = useState("");
+  const [name, setName] = useState(props.initialValue || "");
 
   return (
     <Dialog
@@ -96,6 +97,7 @@ export default function(props: {
         <Dialog.Overlay className="fixed inset-0 opacity-30 bg-black min-h-screen min-w-full" />
         {newExerciseModalOpen && (
           <NewExerciseDialog
+            initialValue={filter}
             open={newExerciseModalOpen}
             onConfirm={(name) => {
               console.log(name)
